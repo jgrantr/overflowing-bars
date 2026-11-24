@@ -13,6 +13,8 @@ import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
 public class GuiLayerHandler {
+    public static final Identifier ARMOR_LEVEL_RIGHT_ID = OverflowingBars.id("armor_level/right");
+    public static final Identifier ARMOR_LEVEL_RIGHT_MOUNTED_ID = OverflowingBars.id("armor_level/right/mounted");
     public static final Identifier TOUGHNESS_LEVEL_LEFT_ID = OverflowingBars.id("toughness_level/left");
     public static final Identifier TOUGHNESS_LEVEL_RIGHT_ID = OverflowingBars.id("toughness_level/right");
     public static final Identifier TOUGHNESS_LEVEL_RIGHT_MOUNTED_ID = OverflowingBars.id("toughness_level/right/mounted");
@@ -27,13 +29,19 @@ public class GuiLayerHandler {
         }
     }
 
-    public static void onRenderArmorLevel(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
+    public static void onRenderArmorLevel(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, Identifier heightProviderLocation, boolean leftSide) {
+        ClientConfig.ArmorRowConfig config = OverflowingBars.CONFIG.get(ClientConfig.class).armor;
         Player player = getCameraPlayer();
-        if (player != null) {
-            ClientConfig.AbstractArmorRowConfig config = OverflowingBars.CONFIG.get(ClientConfig.class).armor;
-            int guiHeight = ScreenHelper.getLeftStatusBarHeight(GuiLayersContext.ARMOR_LEVEL);
+        if (config.rightSide != leftSide && player != null) {
+            int guiHeight;
+            if (leftSide) {
+                guiHeight = ScreenHelper.getLeftStatusBarHeight(heightProviderLocation);
+            } else {
+                guiHeight = ScreenHelper.getRightStatusBarHeight(heightProviderLocation);
+            }
+
             guiHeight += config.manualRowShift();
-            BarOverlayRenderer.renderArmorLevelBar(guiGraphics, player, guiHeight, config.allowCount);
+            BarOverlayRenderer.renderArmorLevelBar(guiGraphics, player, guiHeight, config.allowCount, leftSide);
         }
     }
 

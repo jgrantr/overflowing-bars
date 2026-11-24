@@ -23,7 +23,19 @@ public class ArmorBarRenderer {
             OverflowingBars.id("hud/armor/half"),
             OverflowingBars.id("hud/armor/full"),
             OverflowingBars.id("hud/armor/mixed_mirrored"));
-    private static final ArmorType TOUGHNESS = new ArmorType(OverflowingBars.id("hud/toughness/empty"),
+    private static final ArmorType ARMOR_MIRRORED = new ArmorType(OverflowingBars.id("hud/armor/empty"),
+            OverflowingBars.id("hud/armor/half_mirrored"),
+            OverflowingBars.id("hud/armor/full"),
+            OverflowingBars.id("hud/armor/layer_half_mirrored"),
+            OverflowingBars.id("hud/armor/layer_full"),
+            OverflowingBars.id("hud/armor/mixed_mirrored"));
+    private static final ArmorType ARMOR_MIRRORED_INVERSE = new ArmorType(OverflowingBars.id("hud/armor/empty"),
+            OverflowingBars.id("hud/armor/layer_half_mirrored"),
+            OverflowingBars.id("hud/armor/layer_full"),
+            OverflowingBars.id("hud/armor/half_mirrored"),
+            OverflowingBars.id("hud/armor/full"),
+            OverflowingBars.id("hud/armor/mixed"));
+    private static final ArmorType TOUGHNESS =new ArmorType(OverflowingBars.id("hud/toughness/empty"),
             OverflowingBars.id("hud/toughness/half"),
             OverflowingBars.id("hud/toughness/full"),
             OverflowingBars.id("hud/toughness/layer_half"),
@@ -48,12 +60,18 @@ public class ArmorBarRenderer {
             OverflowingBars.id("hud/toughness/full"),
             OverflowingBars.id("hud/toughness/mixed"));
 
-    public static void renderArmorBar(GuiGraphicsExtractor guiGraphics, int posX, int posY, Player player) {
+    public static void renderArmorBar(GuiGraphicsExtractor guiGraphics, int posX, int posY, Player player, boolean leftSide) {
         Profiler.get().push(OverflowingBars.id("armor").toString());
         ClientConfig.AbstractArmorRowConfig config = OverflowingBars.CONFIG.get(ClientConfig.class).armor;
         int armorPoints = player.getArmorValue();
-        ArmorType armorType = config.inverseColoring ? ARMOR_INVERSE : ARMOR;
-        renderArmorBar(guiGraphics, posX, posY, armorType, armorPoints, true, false, config);
+        ArmorType armorType;
+        if (config.inverseColoring) {
+            armorType = leftSide ? ARMOR_INVERSE : ARMOR_MIRRORED_INVERSE;
+        } else {
+            armorType = leftSide ? ARMOR : ARMOR_MIRRORED;
+        }
+
+        renderArmorBar(guiGraphics, posX, posY, armorType, armorPoints, leftSide, false, config);
         Profiler.get().pop();
     }
 

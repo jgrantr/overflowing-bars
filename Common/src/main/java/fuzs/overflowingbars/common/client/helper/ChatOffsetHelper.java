@@ -11,22 +11,30 @@ public class ChatOffsetHelper {
 
     public static int getChatOffsetY() {
         Player player = Minecraft.getInstance().player;
-        int offset = 0;
+        ClientConfig config = OverflowingBars.CONFIG.get(ClientConfig.class);
+        int leftOffset = 0;
+        int rightOffset = 0;
         if (twoHealthRows(player)) {
-            offset++;
+            leftOffset++;
         }
 
         if (armorRow(player)) {
-            offset++;
-        }
-
-        if (toughnessRow(player)) {
-            if (OverflowingBars.CONFIG.get(ClientConfig.class).toughness.leftSide || offset == 0) {
-                offset++;
+            if (config.armor.rightSide) {
+                rightOffset++;
+            } else {
+                leftOffset++;
             }
         }
 
-        return offset * 10;
+        if (toughnessRow(player)) {
+            if (config.toughness.leftSide) {
+                leftOffset++;
+            } else {
+                rightOffset++;
+            }
+        }
+
+        return Math.max(leftOffset, rightOffset) * 10;
     }
 
     public static boolean twoHealthRows(Player player) {

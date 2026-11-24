@@ -27,12 +27,12 @@ public class BarOverlayRenderer {
         }
     }
 
-    public static void renderArmorLevelBar(GuiGraphicsExtractor guiGraphics, Player player, int leftHeight, boolean rowCount) {
-        int posX = guiGraphics.guiWidth() / 2 - 91;
-        int posY = guiGraphics.guiHeight() - leftHeight;
-        ArmorBarRenderer.renderArmorBar(guiGraphics, posX, posY, player);
+    public static void renderArmorLevelBar(GuiGraphicsExtractor guiGraphics, Player player, int guiHeight, boolean rowCount, boolean leftSide) {
+        int posX = guiGraphics.guiWidth() / 2 + (leftSide ? -91 : 91);
+        int posY = guiGraphics.guiHeight() - guiHeight;
+        ArmorBarRenderer.renderArmorBar(guiGraphics, posX, posY, player, leftSide);
         if (rowCount) {
-            RowCountRenderer.drawBarRowCount(guiGraphics, posX - 2, posY, player.getArmorValue(), true);
+            RowCountRenderer.drawBarRowCount(guiGraphics, posX - 2, posY, player.getArmorValue(), leftSide);
         }
     }
 

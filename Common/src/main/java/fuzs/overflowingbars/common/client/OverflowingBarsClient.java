@@ -40,10 +40,57 @@ public class OverflowingBarsClient implements ClientModConstructor {
         }
         if (OverflowingBars.CONFIG.get(ClientConfig.class).armor.allowArmorLayers) {
             context.replaceGuiLayer(GuiLayersContext.ARMOR_LEVEL, (GuiLayersContext.Layer layer) -> {
-                return GuiLayerHandler::onRenderArmorLevel;
+                return (GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) -> {
+                    GuiLayerHandler.onRenderArmorLevel(guiGraphics, deltaTracker, GuiLayersContext.ARMOR_LEVEL, true);
+                };
             });
             context.addLeftStatusBarHeightProvider(GuiLayersContext.ARMOR_LEVEL, (Player player) -> {
-                if (ChatOffsetHelper.armorRow(player)) {
+                if (ChatOffsetHelper.armorRow(player) && !OverflowingBars.CONFIG.get(ClientConfig.class).armor.rightSide) {
+                    return 10 + OverflowingBars.CONFIG.get(ClientConfig.class).armor.manualRowShift();
+                } else {
+                    return 0;
+                }
+            });
+            // inserted before the food bar, so that the food bar is moved up when the armor bar is present
+            context.registerGuiLayer(GuiLayerHandler.ARMOR_LEVEL_RIGHT_ID,
+                    GuiLayersContext.FOOD_LEVEL,
+                    (GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) -> {
+                        Hud hud = Minecraft.getInstance().gui.hud;
+                        int vehicleMaxHearts = hud.getVehicleMaxHearts(hud.getPlayerVehicleWithHealth());
+                        if (vehicleMaxHearts == 0) {
+                            GuiLayerHandler.onRenderArmorLevel(guiGraphics,
+                                    deltaTracker,
+                                    GuiLayerHandler.ARMOR_LEVEL_RIGHT_ID,
+                                    false);
+                        }
+                    });
+            context.registerGuiLayer(GuiLayerHandler.ARMOR_LEVEL_RIGHT_MOUNTED_ID,
+                    GuiLayersContext.VEHICLE_HEALTH,
+                    (GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) -> {
+                        Hud hud = Minecraft.getInstance().gui.hud;
+                        int vehicleMaxHearts = hud.getVehicleMaxHearts(hud.getPlayerVehicleWithHealth());
+                        if (vehicleMaxHearts != 0) {
+                            GuiLayerHandler.onRenderArmorLevel(guiGraphics,
+                                    deltaTracker,
+                                    GuiLayerHandler.ARMOR_LEVEL_RIGHT_MOUNTED_ID,
+                                    false);
+                        }
+                    });
+            context.addRightStatusBarHeightProvider(GuiLayerHandler.ARMOR_LEVEL_RIGHT_ID, (Player player) -> {
+                Hud hud = Minecraft.getInstance().gui.hud;
+                int vehicleMaxHearts = hud.getVehicleMaxHearts(hud.getPlayerVehicleWithHealth());
+                if (vehicleMaxHearts == 0 && ChatOffsetHelper.armorRow(player) && OverflowingBars.CONFIG.get(
+                        ClientConfig.class).armor.rightSide) {
+                    return 10 + OverflowingBars.CONFIG.get(ClientConfig.class).armor.manualRowShift();
+                } else {
+                    return 0;
+                }
+            });
+            context.addRightStatusBarHeightProvider(GuiLayerHandler.ARMOR_LEVEL_RIGHT_MOUNTED_ID, (Player player) -> {
+                Hud hud = Minecraft.getInstance().gui.hud;
+                int vehicleMaxHearts = hud.getVehicleMaxHearts(hud.getPlayerVehicleWithHealth());
+                if (vehicleMaxHearts != 0 && ChatOffsetHelper.armorRow(player) && OverflowingBars.CONFIG.get(
+                        ClientConfig.class).armor.rightSide) {
                     return 10 + OverflowingBars.CONFIG.get(ClientConfig.class).armor.manualRowShift();
                 } else {
                     return 0;

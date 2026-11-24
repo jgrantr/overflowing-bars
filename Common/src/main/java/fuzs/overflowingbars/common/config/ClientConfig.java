@@ -50,6 +50,11 @@ public class ClientConfig implements ConfigCore {
         public boolean allowArmorLayers = true;
         @Config(description = "Move chat messages above armor / absorption bar.")
         public boolean moveChatAboveArmor = true;
+        @Config(description = {
+                "Render the armor bar on the right side above the hotbar, below the food bar.",
+                "Useful when the food bar is hidden, e.g. by a data pack that removes hunger."
+        })
+        public boolean rightSide = false;
     }
 
     public static class ToughnessRowConfig extends AbstractArmorRowConfig {

@@ -2,8 +2,11 @@ package fuzs.overflowingbars.common.client.gui;
 
 import fuzs.overflowingbars.common.OverflowingBars;
 import fuzs.overflowingbars.common.config.ClientConfig;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.profiling.Profiler;
@@ -11,29 +14,35 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 
 public class ArmorBarRenderer {
-    private static final ArmorType ARMOR = new ArmorType(OverflowingBars.id("hud/armor/empty"),
-            OverflowingBars.id("hud/armor/half"),
-            OverflowingBars.id("hud/armor/full"),
+    /**
+     * Use vanilla sprites for regular armor points, so that resource packs changing them also apply here.
+     */
+    private static final Identifier VANILLA_ARMOR_EMPTY = Identifier.withDefaultNamespace("hud/armor_empty");
+    private static final Identifier VANILLA_ARMOR_HALF = Identifier.withDefaultNamespace("hud/armor_half");
+    private static final Identifier VANILLA_ARMOR_FULL = Identifier.withDefaultNamespace("hud/armor_full");
+    private static final ArmorType ARMOR = new ArmorType(VANILLA_ARMOR_EMPTY,
+            VANILLA_ARMOR_HALF,
+            VANILLA_ARMOR_FULL,
             OverflowingBars.id("hud/armor/layer_half"),
             OverflowingBars.id("hud/armor/layer_full"),
             OverflowingBars.id("hud/armor/mixed"));
-    private static final ArmorType ARMOR_INVERSE = new ArmorType(OverflowingBars.id("hud/armor/empty"),
+    private static final ArmorType ARMOR_INVERSE = new ArmorType(VANILLA_ARMOR_EMPTY,
             OverflowingBars.id("hud/armor/layer_half"),
             OverflowingBars.id("hud/armor/layer_full"),
-            OverflowingBars.id("hud/armor/half"),
-            OverflowingBars.id("hud/armor/full"),
+            VANILLA_ARMOR_HALF,
+            VANILLA_ARMOR_FULL,
             OverflowingBars.id("hud/armor/mixed_mirrored"));
-    private static final ArmorType ARMOR_MIRRORED = new ArmorType(OverflowingBars.id("hud/armor/empty"),
-            OverflowingBars.id("hud/armor/half_mirrored"),
-            OverflowingBars.id("hud/armor/full"),
+    private static final ArmorType ARMOR_MIRRORED = new ArmorType(VANILLA_ARMOR_EMPTY,
+            VANILLA_ARMOR_HALF,
+            VANILLA_ARMOR_FULL,
             OverflowingBars.id("hud/armor/layer_half_mirrored"),
             OverflowingBars.id("hud/armor/layer_full"),
             OverflowingBars.id("hud/armor/mixed_mirrored"));
-    private static final ArmorType ARMOR_MIRRORED_INVERSE = new ArmorType(OverflowingBars.id("hud/armor/empty"),
+    private static final ArmorType ARMOR_MIRRORED_INVERSE = new ArmorType(VANILLA_ARMOR_EMPTY,
             OverflowingBars.id("hud/armor/layer_half_mirrored"),
             OverflowingBars.id("hud/armor/layer_full"),
-            OverflowingBars.id("hud/armor/half_mirrored"),
-            OverflowingBars.id("hud/armor/full"),
+            VANILLA_ARMOR_HALF,
+            VANILLA_ARMOR_FULL,
             OverflowingBars.id("hud/armor/mixed"));
     private static final ArmorType TOUGHNESS =new ArmorType(OverflowingBars.id("hud/toughness/empty"),
             OverflowingBars.id("hud/toughness/half"),
@@ -117,15 +126,34 @@ public class ArmorBarRenderer {
                 if (value > 20) {
                     guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, armorType.mixed(), startX, posY, 9, 9);
                 } else {
-                    guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, armorType.layerHalf(), startX, posY, 9, 9);
+                    blitHalfSprite(guiGraphics, armorType.layerHalf(), startX, posY, leftSide);
                 }
             } else if (currentArmorPoint * 2 + 1 < value) {
                 guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, armorType.full(), startX, posY, 9, 9);
             } else if (currentArmorPoint * 2 + 1 == value) {
-                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, armorType.half(), startX, posY, 9, 9);
+                blitHalfSprite(guiGraphics, armorType.half(), startX, posY, leftSide);
             } else if (!skipEmpty && currentArmorPoint * 2 + 1 > value) {
                 guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, armorType.empty(), startX, posY, 9, 9);
             }
+        }
+    }
+
+    private static void blitHalfSprite(GuiGraphicsExtractor guiGraphics, Identifier sprite, int posX, int posY, boolean leftSide) {
+        // vanilla has no mirrored half armor sprite, so flip it when rendering from right to left
+        // swap the u coordinates instead of scaling the pose, as a negative scale gets the quad culled
+        if (!leftSide && sprite.equals(VANILLA_ARMOR_HALF)) {
+            TextureAtlasSprite atlasSprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.GUI).getSprite(sprite);
+            guiGraphics.blit(atlasSprite.atlasLocation(),
+                    posX,
+                    posY,
+                    posX + 9,
+                    posY + 9,
+                    atlasSprite.getU1(),
+                    atlasSprite.getU0(),
+                    atlasSprite.getV0(),
+                    atlasSprite.getV1());
+        } else {
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, posX, posY, 9, 9);
         }
     }
 
